@@ -13,7 +13,7 @@ import CSVDataNotice from "./components/CSVDataNotice";
 import InstagramScraper from "./services/instagramScraper";
 import CSVParser from "./services/csvParser";
 import CSVLoader from "./services/csvLoader";
-import { getCSVComments } from "./data/sampleComments";
+// Removed mock data fallback; always use real CSV loader
 import { Instagram, Gift, Users, Trophy, AlertTriangle } from "lucide-react";
 
 function App() {
@@ -60,10 +60,11 @@ function App() {
       console.error("Real scraping failed:", error);
       setScrapingError(error.message);
 
-      // Fallback to real CSV data with explanation
-      console.log("Falling back to CSV data...");
+      // Fallback to CSV in public folder
+      console.log("Falling back to CSV data from public/comments.csv...");
       showApiLimitationMessage();
-      setComments(getCSVComments());
+      const csvComments = await CSVLoader.loadCommentsFromCSV();
+      setComments(csvComments);
     } finally {
       setIsLoading(false);
     }
@@ -86,11 +87,12 @@ function App() {
     }
   };
 
-  const handleDeclineRisk = () => {
+  const handleDeclineRisk = async () => {
     setShowLegalWarning(false);
     // Show CSV data instead
     showApiLimitationMessage();
-    setComments(getCSVComments());
+    const csvComments = await CSVLoader.loadCommentsFromCSV();
+    setComments(csvComments);
   };
 
   // Show API limitation message
@@ -297,8 +299,8 @@ function App() {
                       setComments(csvComments);
                     } catch (error) {
                       console.error("Failed to load CSV comments:", error);
-                      // Fallback to embedded data
-                      setComments(getCSVComments());
+                      // Keep current state; show notice instead of mock data
+                      showApiLimitationMessage();
                     } finally {
                       setIsLoading(false);
                     }
